@@ -1,0 +1,32 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "PYA9jcuRclfWLkEbI0b113U3Jlk=",
+			"path": "github.com/corona10/goimagehash",
+			"revision": "81672d701632bc2f2ba9c86e9bd28b645b39f92a",
+			"revisionTime": "2018-10-01T08:21:06Z"
+		},
+		{
+			"checksumSHA1": "7R0nVusiXiKPvCy9IfPsWfCiSEE=",
+			"path": "github.com/corona10/goimagehash/etcs",
+			"revision": "81672d701632bc2f2ba9c86e9bd28b645b39f92a",
+			"revisionTime": "2018-10-01T08:21:06Z"
+		},
+		{
+			"checksumSHA1": "I0x+dtmre2r12AXeDkFHdkO4muU=",
+			"path": "github.com/corona10/goimagehash/transforms",
+			"revision": "81672d701632bc2f2ba9c86e9bd28b645b39f92a",
+			"revisionTime": "2018-10-01T08:21:06Z"
+		},
+		{
+			"checksumSHA1": "uY0cjuu0uqjTiNfbu+ZEqj6FI8c=",
+			"origin": "github.com/corona10/goimagehash/vendor/github.com/nfnt/resize",
+			"path": "github.com/nfnt/resize",
+			"revision": "81672d701632bc2f2ba9c86e9bd28b645b39f92a",
+			"revisionTime": "2018-10-01T08:21:06Z"
+		}
+	],
+	"rootPath": "github.com/panyingyun/detection"
+}
