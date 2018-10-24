@@ -6,6 +6,7 @@ import (
 	"image/jpeg"
 	"io"
 	"os"
+	"time"
 
 	"github.com/corona10/goimagehash"
 	"github.com/mattermost/mattermost-server/model"
@@ -89,13 +90,14 @@ func run(c *cli.Context) error {
 	passwd := conf.Passwd
 	team := conf.Team
 	chname := conf.Chname
+	orgjpg := conf.Orgjpg
+	newjpg := conf.Newjpg
 
-	fmt.Println("hello")
-	distance, _ := comparejpg("a.jpg", "c.jpg")
+	distance, _ := comparejpg(orgjpg, newjpg)
 	fmt.Printf("Distance between images: %v\n", distance)
 	if distance >= 0 {
-		message := "warning! warning! warning!"
-		err = sendmessage(server, username, passwd, team, chname, message, "c.jpg")
+		message := "warning!" + time.Now().Format("2006-01-02 15:04:05")
+		err = sendmessage(server, username, passwd, team, chname, message, newjpg)
 	}
 	return err
 }
