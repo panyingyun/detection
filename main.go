@@ -142,12 +142,9 @@ func run(c *cli.Context) error {
 
 	go func() {
 		for {
-			starttime := time.Now()
-
+			//starttime := time.Now()
 			catch_newjpg()
-
 			distance, _ := comparejpg(orgjpg, newjpg)
-
 			//fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
 			if distance >= dist {
