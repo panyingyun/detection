@@ -108,7 +108,7 @@ func sendmessage(server string, username string, passwd string, team string, chn
 	pictures = append(pictures, fileid)
 	post.FileIds = pictures
 	pt, postresp := Client.CreatePost(&post)
-	if postresp.StatusCode != http.StatusOK {
+	if postresp.StatusCode != http.StatusCreated {
 		fmt.Println("CreatePost: post = ", post)
 		fmt.Println("CreatePost: pt = ", pt)
 		fmt.Println("CreatePost: postresp = ", postresp)
@@ -153,6 +153,8 @@ func run(c *cli.Context) error {
 				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
 				if err != nil {
 					fmt.Println("sendmessage err = ", err)
+				} else {
+					fmt.Println("sendmessage OK!")
 				}
 			}
 		}
