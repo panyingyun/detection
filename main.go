@@ -21,12 +21,16 @@ import (
 
 func catch_orgjpg() {
 	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o a.jpg")
-	fmt.Println("catch orgjpg err = ", err)
+	if err != nil {
+		fmt.Println("catch orgjpg err = ", err)
+	}
 }
 
 func catch_newjpg() {
 	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o c.jpg")
-	fmt.Println("catch newjpg err = ", err)
+	if err != nil {
+		fmt.Println("catch newjpg err = ", err)
+	}
 }
 
 //run extern shell
@@ -47,12 +51,8 @@ func comparejpg(orgjpg, newjpg string) (int, error) {
 	newfile, _ := os.Open(newjpg)
 	defer orgfile.Close()
 	defer newfile.Close()
-	starttime := time.Now()
 	img1, _ := jpeg.Decode(orgfile)
-	fmt.Printf("img1 Decode dtime = %v\n", time.Now().Sub(starttime))
-	starttime = time.Now()
 	img2, _ := jpeg.Decode(newfile)
-	fmt.Printf("img2 Decode dtime = %v\n", time.Now().Sub(starttime))
 	hash1, _ := goimagehash.AverageHash(img1)
 	hash2, _ := goimagehash.AverageHash(img2)
 	distance, err := hash1.Distance(hash2)
@@ -132,6 +132,9 @@ func run(c *cli.Context) error {
 	chname := conf.Chname
 	orgjpg := conf.Orgjpg
 	newjpg := conf.Newjpg
+	dist := conf.Distance
+
+	fmt.Println("dist =  ", dist)
 
 	catch_orgjpg()
 
@@ -140,17 +143,15 @@ func run(c *cli.Context) error {
 	go func() {
 		for {
 			starttime := time.Now()
-			fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
 			catch_newjpg()
 
 			distance, _ := comparejpg(orgjpg, newjpg)
 
-			fmt.Printf("Distance between images: %v\n", distance)
+			//fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
-			fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
-
-			if distance >= 15 {
+			if distance >= dist {
+				fmt.Printf("Distance between images: %v\n", distance)
 				message := "@channel ^o^catch you^o^ 于时间：" + time.Now().Format("2006-01-02 15:04:05")
 				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
 				if err != nil {

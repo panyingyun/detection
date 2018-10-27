@@ -14,10 +14,11 @@ type Config struct {
 	Chname   string `ini:"chname"`
 	Orgjpg   string `ini:"orgjpg"`
 	Newjpg   string `ini:"newjpg"`
+	Distance int    `ini:"distance"`
 }
 
 func (c Config) String() string {
-	server := fmt.Sprintf("[Server:%v]/[Username:%v]/[Passwd:%v]/[Team:%v]/[Chname:%v]/[Org:%v]/[New:%v]", c.Server, c.Username, c.Passwd, c.Team, c.Chname, c.Orgjpg, c.Newjpg)
+	server := fmt.Sprintf("[Server:%v]/[Username:%v]/[Passwd:%v]/[Team:%v]/[Chname:%v]/[Org:%v]/[New:%v]/[Distence:%v]", c.Server, c.Username, c.Passwd, c.Team, c.Chname, c.Orgjpg, c.Newjpg, c.Distance)
 	return server
 }
 
