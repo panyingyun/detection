@@ -147,8 +147,8 @@ func run(c *cli.Context) error {
 			distance, _ := comparejpg(orgjpg, newjpg)
 			//fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
+			fmt.Printf("Distance between images: %v\n", distance)
 			if distance >= dist {
-				fmt.Printf("Distance between images: %v\n", distance)
 				message := "@channel ^o^catch you^o^ 于时间：" + time.Now().Format("2006-01-02 15:04:05")
 				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
 				if err != nil {
@@ -156,6 +156,9 @@ func run(c *cli.Context) error {
 				} else {
 					fmt.Println("sendmessage OK!")
 				}
+			} else if distance > 2 {
+				catch_newjpg()
+				fmt.Println("change org image OK!")
 			}
 		}
 	}()
