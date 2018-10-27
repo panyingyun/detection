@@ -162,7 +162,7 @@ func run(c *cli.Context) error {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	fmt.Printf("signal received signal %v and showdown server", <-ch)
+	fmt.Printf("signal received signal %v and showdown server\n", <-ch)
 	return err
 }
 
