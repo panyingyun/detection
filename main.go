@@ -20,14 +20,14 @@ import (
 )
 
 func catch_orgjpg() {
-	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o a.jpg")
+	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -rot 180  -o a.jpg")
 	if err != nil {
 		fmt.Println("catch orgjpg err = ", err)
 	}
 }
 
 func catch_newjpg() {
-	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o c.jpg")
+	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -rot 180  -o c.jpg")
 	if err != nil {
 		fmt.Println("catch newjpg err = ", err)
 	}
