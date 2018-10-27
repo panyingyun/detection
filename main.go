@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image/jpeg"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -18,13 +20,13 @@ import (
 )
 
 func catch_orgjpg() {
-	_, err := exec_shell("raspistill  -t 1 -w 1024 -h 768 -br 60 -vf  -o a.jpg")
-	fmt.Println("catch_orgjpg err = ", err)
+	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o a.jpg")
+	fmt.Println("catch orgjpg err = ", err)
 }
 
 func catch_newjpg() {
-	_, err := exec_shell("raspistill  -t 1 -w 1024 -h 768 -br 60 -vf  -o c.jpg")
-	fmt.Println("catch_newjpg err = ", err)
+	_, err := exec_shell("raspistill  -t 1 -w 800 -h 600 -br 60 -vf  -o c.jpg")
+	fmt.Println("catch newjpg err = ", err)
 }
 
 //run extern shell
@@ -45,14 +47,15 @@ func comparejpg(orgjpg, newjpg string) (int, error) {
 	newfile, _ := os.Open(newjpg)
 	defer orgfile.Close()
 	defer newfile.Close()
-
+	starttime := time.Now()
 	img1, _ := jpeg.Decode(orgfile)
+	fmt.Printf("img1 Decode dtime = %v\n", time.Now().Sub(starttime))
+	starttime = time.Now()
 	img2, _ := jpeg.Decode(newfile)
+	fmt.Printf("img2 Decode dtime = %v\n", time.Now().Sub(starttime))
 	hash1, _ := goimagehash.AverageHash(img1)
 	hash2, _ := goimagehash.AverageHash(img2)
 	distance, err := hash1.Distance(hash2)
-	fmt.Println("distance = ", distance)
-	fmt.Println("err = ", err)
 	return distance, err
 }
 
@@ -61,16 +64,24 @@ func sendmessage(server string, username string, passwd string, team string, chn
 	//Login
 	Client := model.NewAPIv4Client(server)
 	mine, resp := Client.Login(username, passwd)
-	fmt.Println("LOGIN: mine = ", mine)
-	fmt.Println("LOGIN: resp = ", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("LOGIN: mine = ", mine)
+		fmt.Println("LOGIN: resp = ", resp.StatusCode)
+		return errors.New("Login fail,please check server or check user")
+	}
+
 	//Get channel
 	channel, chresp := Client.GetChannelByNameForTeamName(chname, team, "")
-	fmt.Println("CH: channel = ", channel)
-	fmt.Println("CH: chresp = ", chresp.StatusCode)
+	if chresp.StatusCode != http.StatusOK {
+		fmt.Println("CH: channel = ", channel)
+		fmt.Println("CH: chresp = ", chresp.StatusCode)
+		return errors.New("GetChannel fail,please check server or check user")
+	}
+
 	//Upload file
 	file, err := os.Open(newjpg)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer file.Close()
 
@@ -78,14 +89,15 @@ func sendmessage(server string, username string, passwd string, team string, chn
 	io.Copy(buf, file)
 	data := buf.Bytes()
 	chid := channel.Id
-	fmt.Println("UPLOAD: filename = ", newjpg)
 	fileUploadResponse, uploadresp := Client.UploadFile(data, chid, newjpg)
+	if uploadresp.StatusCode != http.StatusCreated {
+		fmt.Println("UPLOAD: fileUploadResponse = ", fileUploadResponse)
+		fmt.Println("UPLOAD: uploadresp = ", uploadresp.StatusCode)
+		return errors.New("UploadFile fail,please check server or check user")
+	}
 
-	fmt.Println("UPLOAD: fileUploadResponse = ", fileUploadResponse)
-	fmt.Println("UPLOAD: uploadresp = ", uploadresp.StatusCode)
 	infos := fileUploadResponse.FileInfos
 	fileid := infos[0].Id
-	fmt.Println("UPLOAD: fileinfos = ", infos)
 	fmt.Println("UPLOAD: fileid = ", fileid)
 
 	//send a message with picture
@@ -96,9 +108,12 @@ func sendmessage(server string, username string, passwd string, team string, chn
 	pictures = append(pictures, fileid)
 	post.FileIds = pictures
 	pt, postresp := Client.CreatePost(&post)
-	fmt.Println("CreatePost: post = ", post)
-	fmt.Println("CreatePost: pt = ", pt)
-	fmt.Println("CreatePost: postresp = ", postresp)
+	if postresp.StatusCode != http.StatusOK {
+		fmt.Println("CreatePost: post = ", post)
+		fmt.Println("CreatePost: pt = ", pt)
+		fmt.Println("CreatePost: postresp = ", postresp)
+		return errors.New("CreatePost fail,please check server or check user")
+	}
 	return nil
 }
 
@@ -125,6 +140,7 @@ func run(c *cli.Context) error {
 	go func() {
 		for {
 			starttime := time.Now()
+			fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
 			catch_newjpg()
 
@@ -132,11 +148,14 @@ func run(c *cli.Context) error {
 
 			fmt.Printf("Distance between images: %v\n", distance)
 
-			fmt.Printf("dtime = %v ", time.Now().Sub(starttime))
+			fmt.Printf("dtime = %v\n", time.Now().Sub(starttime))
 
 			if distance >= 15 {
 				message := "@channel ^o^catch you^o^ 于时间：" + time.Now().Format("2006-01-02 15:04:05")
 				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
+				if err != nil {
+					fmt.Println("sendmessage err = ", err)
+				}
 			}
 		}
 	}()
