@@ -132,9 +132,9 @@ func run(c *cli.Context) error {
 
 			fmt.Printf("Distance between images: %v\n", distance)
 
-			fmt.Printf("dtime = ", time.Now().Sub(starttime))
+			fmt.Printf("dtime = %v ", time.Now().Sub(starttime))
 
-			if distance < 0 {
+			if distance >= 15 {
 				message := "@channel ^o^catch you^o^ 于时间：" + time.Now().Format("2006-01-02 15:04:05")
 				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
 			}
