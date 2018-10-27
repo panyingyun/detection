@@ -6,6 +6,9 @@ import (
 	"image/jpeg"
 	"io"
 	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/corona10/goimagehash"
@@ -13,6 +16,28 @@ import (
 	"github.com/panyingyun/detection/config"
 	"github.com/urfave/cli"
 )
+
+func catch_orgjpg() {
+	_, err := exec_shell("raspistill  -t 1 -w 1024 -h 768 -br 60 -vf  -o a.jpg")
+	fmt.Println("catch_orgjpg err = ", err)
+}
+
+func catch_newjpg() {
+	_, err := exec_shell("raspistill  -t 1 -w 1024 -h 768 -br 60 -vf  -o c.jpg")
+	fmt.Println("catch_newjpg err = ", err)
+}
+
+//run extern shell
+func exec_shell(s string) (string, error) {
+	cmd := exec.Command("/bin/bash", "-c", s)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("err = ", err)
+	}
+	return out.String(), err
+}
 
 //compare two jpg and return distance
 func comparejpg(orgjpg, newjpg string) (int, error) {
@@ -93,12 +118,32 @@ func run(c *cli.Context) error {
 	orgjpg := conf.Orgjpg
 	newjpg := conf.Newjpg
 
-	distance, _ := comparejpg(orgjpg, newjpg)
-	fmt.Printf("Distance between images: %v\n", distance)
-	if distance >= 0 {
-		message := "warning!" + time.Now().Format("2006-01-02 15:04:05")
-		err = sendmessage(server, username, passwd, team, chname, message, newjpg)
-	}
+	catch_orgjpg()
+
+	catch_newjpg()
+
+	go func() {
+		for {
+			starttime := time.Now()
+
+			catch_newjpg()
+
+			distance, _ := comparejpg(orgjpg, newjpg)
+
+			fmt.Printf("Distance between images: %v\n", distance)
+
+			fmt.Printf("dtime = ", time.Now().Sub(starttime))
+
+			if distance < 0 {
+				message := "@channel ^o^catch you^o^ 于时间：" + time.Now().Format("2006-01-02 15:04:05")
+				err = sendmessage(server, username, passwd, team, chname, message, newjpg)
+			}
+		}
+	}()
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	fmt.Printf("signal received signal %v and showdown server", <-ch)
 	return err
 }
 
